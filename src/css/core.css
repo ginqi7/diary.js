@@ -1,0 +1,127 @@
+.diary .calendar * {
+    margin: 0;
+    padding: 0;
+}
+.diary .calendar table,
+.diary .calendar table th,
+.diary .calendar table td {
+    border: 0;
+}
+.diary .calendar table {
+    border-collapse: collapse;
+    margin: 5px;
+    border-radius: 4px;
+    font-family: Tahoma, Geneva, sans-serif;
+    color: #333333;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 2px rgba(80, 80, 80, 0.4);
+}
+.diary .calendar thead .calendar-title {
+    height: 40px;
+    line-height: 40px;
+}
+.diary .calendar thead .calendar-title-left {
+    float: left;
+}
+.diary .calendar thead .calendar-title-right {
+    float: right;
+}
+.diary .calendar thead .calendar-nav-left,
+.diary .calendar thead .calendar-nav-right {
+    margin: 10px 8px;
+    border-radius: 10px;
+    width: 20px;
+    height: 20px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+    color: #999999;
+    transition: color 0.2s, background-color 0.2s;
+    cursor: pointer;
+}
+.diary .calendar thead .calendar-nav-left:hover,
+.diary .calendar thead .calendar-nav-right:hover {
+    color: #555555;
+    background-color: #DADADA;
+}
+.diary .calendar thead .calendar-nav-left {
+    float: left;
+}
+.diary .calendar thead .calendar-nav-right {
+    float: right;
+}
+.diary .calendar thead .calendar-title-name {
+    float: left;
+    padding: 0 20px;
+    font-size: 18px;
+    font-weight: lighter;
+    cursor: default;
+}
+.diary .calendar thead .calendar-nav-left:after {
+    content: "<";
+}
+.diary .calendar thead .calendar-nav-right:after {
+    content: ">";
+}
+.diary .calendar thead .calendar-week-days th {
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+}
+.diary .calendar thead .calendar-week-days th,
+.diary .calendar tbody td {
+    display: inline-block;
+    margin: 1px 2px;
+    border-radius: 18px;
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+    font-weight: lighter;
+    line-height: 36px;
+    text-align: center;
+    transition: color 0.1s, background-color 0.2s;
+    cursor: default;
+}
+.diary .calendar tbody td:hover {
+	color: #000000;
+    background-color: #DADADA;
+}
+.diary .calendar tbody td.calendar-selected {
+    box-sizing: content-box;
+    border: 2px solid #BFBFBF;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    background-color: #FFFFFF;
+}
+.diary .calendar tbody td.calendar-current {
+    border-radius: 18px;
+    color: #FFFFFF;
+    background-color: #252525;
+}
+.diary .calendar tbody td.jsCalendar-current:hover {
+		color: #FFFFFF;
+}
+.diary .calendar tbody td.calendar-previous,
+.diary .calendar tbody td.calendar-next {
+    color: #AFAFAF;
+}
+.diary .calendar tbody td.calendar-previous:hover,
+.diary .calendar tbody td.calendar-next:hover {
+    color: #000000;
+}
+
+.diary .calendar thead {
+    display: block;
+    margin: 4px 4px 0 4px;
+}
+.diary .calendar tbody {
+    display: block;
+    margin: 0 4px 4px 4px;
+}
+.diary .calendar ::-moz-selection {
+    background: #AFAFAF;
+}
+.diary .calendar ::selection {
+    background: #AFAFAF;
+}
