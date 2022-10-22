@@ -21,14 +21,14 @@ const diayCalendar =
   "<tr class='calendar-title-row'>" +
   "<th colspan='7' class='calendar-title'>" +
   "<div class='calendar-title-left'>" +
-  "<div class='calendar-nav-left' id = 'prev'></div>" +
+  "<div class='calendar-nav-left' id = 'properties.prev'></div>" +
   "</div>" +
   "<div class='calendar-title-name' id='year'>" +
   "</div>" +
   "<div class='calendar-title-name' id= 'month'>" +
   "</div>" +
   "<div class='calendar-title-right'>" +
-  "<div class='calendar-nav-right' id='next'></div>" +
+  "<div class='calendar-nav-right' id='properties.next'></div>" +
   "</div>" +
   "</th>" +
   "</tr>" +
@@ -49,42 +49,43 @@ const diayCalendar =
 var today = new Date();
 // global parameters for calendar show year and month.
 // user can click page to chage this values.
-var showYear = today.getFullYear();
-var showMonth = today.getMonth();
-var thisDay = today.getDate();
-today = new Date(showYear, showMonth, thisDay);
-var holder;
-var prev;
-var next;
-var monthElement;
-var count = 0;
+
+const properties = {};
+properties.showYear = today.getFullYear();
+properties.showMonth = today.getMonth();
+properties.thisDay = today.getDate();
+today = new Date(properties.showYear, properties.showMonth, properties.thisDay);
+properties.holder;
+properties.prev;
+properties.next;
+properties.monthElement;
+properties.count = 0;
+properties.allDiary;
 
 window.onload = function () {
   document.getElementById("diary").innerHTML = diayCalendar;
-  holder = document.getElementById("days");
-  prev = document.getElementById("prev");
-  next = document.getElementById("next");
-  monthElement = document.getElementById("month");
-  yearElement = document.getElementById("year");
-
-  refreshDate();
-
-  prev.onclick = function (e) {
+  properties.holder = document.getElementById("days");
+  properties.prev = document.getElementById("properties.prev");
+  properties.next = document.getElementById("properties.next");
+  properties.monthElement = document.getElementById("month");
+  properties.yearElement = document.getElementById("year");
+  listAllDiary();
+  properties.prev.onclick = function (e) {
     e.preventDefault();
-    showMonth--;
-    if (showMonth < 0) {
-      showYear--;
-      showMonth = 11;
+    properties.showMonth--;
+    if (properties.showMonth < 0) {
+      properties.showYear--;
+      properties.showMonth = 11;
     }
     refreshDate();
   };
 
-  next.onclick = function (e) {
+  properties.next.onclick = function (e) {
     e.preventDefault();
-    showMonth++;
-    if (showMonth > 11) {
-      showYear++;
-      showMonth = 0;
+    properties.showMonth++;
+    if (properties.showMonth > 11) {
+      properties.showYear++;
+      properties.showMonth = 0;
     }
     refreshDate();
   };
@@ -92,11 +93,29 @@ window.onload = function () {
 
 function refreshDate() {
   var days = "";
-  var calendar = new Calendar(showYear, showMonth, thisDay);
-  holder.innerHTML = calendar.draw(); //设置日期显示
+  var calendar = new Calendar(
+    properties.showYear,
+    properties.showMonth,
+    properties.thisDay
+  );
+  properties.holder.innerHTML = calendar.draw();
   calendar.fetchDiary();
-  monthElement.innerHTML = monthName[showMonth]; //设置英文月份显示
-  yearElement.innerHTML = showYear; //设置年份显示
+  properties.monthElement.innerHTML = monthName[properties.showMonth];
+  properties.yearElement.innerHTML = properties.showYear;
+  addClickHandleForDays();
+}
+
+function addClickHandleForDays() {
+  var days = document.getElementsByClassName("day");
+  for (var i = 0; i < days.length; i++) {
+    if (days[i].classList.contains("cursor-pointer")) {
+      days[i].onclick = function (e) {
+        properties.thisDay = this.innerHTML;
+        console.log(this);
+        refreshDate();
+      };
+    }
+  }
 }
 
 function Calendar(year, month, selectDay) {
@@ -143,17 +162,28 @@ Calendar.prototype.addData = function (date) {
   var row = Math.ceil((this.firstDay + date.getDate()) / 7) - 1;
   var col = (this.firstDay + date.getDate() - 1) % 7;
   var dayClass;
+  var dayStr = date.getDate();
+  var element = document.createElement("td");
+  element.innerHTML = date.getDate();
+  element.classList.add("day");
   if (date < today) {
     // When the date is before today, it is displayed in light gray font
-    dayClass = " class='lightgrey day'";
   } else if (date.getTime() == today.getTime()) {
     // Today's date is highlighted with a green background
-    dayClass = " class='calendar-current day'";
+    element.classList.add("calendar-current");
   } else {
     // When the date is after today, it is displayed in dark gray font
-    dayClass = " class='darkgrey day'";
+    dayClass = " class='day'";
   }
-  this.data[row][col] = "<td" + dayClass + ">" + date.getDate() + "</td>";
+  if (properties.allDiary.includes(date.format("yyyyMMdd") + ".html")) {
+    element.classList.add("calendar-has-diary");
+    element.classList.add("cursor-pointer");
+  }
+  if (date.getDate() == properties.thisDay) {
+    element.classList.add("calendar-selected");
+  }
+  //this.data[row][col] = "<td" + dayClass + ">" + dayStr + "</td>";
+  this.data[row][col] = element.outerHTML;
 };
 
 Calendar.prototype.buildDataArray = function (weeks) {
@@ -178,22 +208,34 @@ Calendar.prototype.printData = function () {
 
 Calendar.prototype.fetchDiary = function () {
   const xhttp = new XMLHttpRequest();
-  const selectDate = new Date(this.year, this.month, this.selectDay).format("yyyyMMdd")
-  const path = document.getElementById("diary").getAttribute("path")
+  const selectedDate = new Date(this.year, this.month, this.selectDay).format(
+    "yyyyMMdd"
+  );
+  const path = document.getElementById("diary").getAttribute("path");
   xhttp.onload = function () {
     if (this.status == 404) {
-      document.getElementById("diary-content").innerHTML =
-        "There is no diary for day " + selectDate;
+      var message = document.createElement("div");
+      var noDiaryMessage = document.createElement("p");
+      noDiaryMessage.innerHTML = "There is no diary for day " + selectedDate;
+      message.innerHTML = noDiaryMessage.outerHTML; 
+      var alldDiary = properties.allDiary;
+      if (alldDiary != undefined && alldDiary.length > 0) {
+        var existDiaryMessage = document.createElement("p");
+        var existDiarya = document.createElement("a");
+        var latestDiary = properties.allDiary[properties.allDiary.length-1];
+        existDiarya.innerHTML = latestDiary.replace(".html", "");
+        existDiaryMessage.innerHTML = "Your latest diary is " + existDiarya.outerHTML;
+        message.innerHTML += existDiaryMessage.outerHTML;
+      }
+      console.log(message);
+      document.getElementById("diary-content").innerHTML = message.outerHTML;
+      ;
     } else if (this.status == 200) {
       document.getElementById("diary-content").innerHTML = this.responseText;
     }
-    console.log(this);
   };
 
-  xhttp.open(
-    "GET",
-    path + selectDate + ".html"
-  );
+  xhttp.open("GET", path + selectedDate + ".html");
   xhttp.send();
 };
 
@@ -223,3 +265,28 @@ Date.prototype.format = function (fmt) {
   }
   return fmt;
 };
+
+function listAllDiary() {
+  const xhttp = new XMLHttpRequest();
+  const path = document.getElementById("diary").getAttribute("path");
+  xhttp.onload = function () {
+    // unique and sort all diary
+    properties.allDiary = unique(/[0-9]+\.html/.exec(this.responseText)).sort();
+    refreshDate();
+  };
+
+  xhttp.open("GET", path);
+  xhttp.send();
+}
+
+function unique(arr) {
+  for (var i = 0; i < arr.length; i++) {
+    for (var j = i + 1; j < arr.length; j++) {
+      if (arr[i] == arr[j]) {
+        arr.splice(j, 1);
+        j--;
+      }
+    }
+  }
+  return arr;
+}
