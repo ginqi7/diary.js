@@ -13,7 +13,7 @@ const monthName = [
   "December",
 ];
 
-const diayCalendar =
+const diaryCalendar =
   "<div id='diary-content'></div>" +
   "<div class='calendar'>" +
   "<table>" +
@@ -47,52 +47,60 @@ const diayCalendar =
   "</div>";
 
 var today = new Date();
+const properties = {};
 // global parameters for calendar show year and month.
 // user can click page to chage this values.
-
-const properties = {};
 properties.showYear = today.getFullYear();
 properties.showMonth = today.getMonth();
 properties.thisDay = today.getDate();
 today = new Date(properties.showYear, properties.showMonth, properties.thisDay);
 properties.holder;
+properties.path;
 properties.prev;
 properties.next;
 properties.monthElement;
 properties.count = 0;
-properties.allDiary;
+properties.allDiary = [];
+
+function prevClickAction(e) {
+  // month minua one
+  e.preventDefault();
+  properties.showMonth--;
+  if (properties.showMonth < 0) {
+    properties.showYear--;
+    properties.showMonth = 11;
+  }
+  refreshDate();
+}
+
+function nextClickAction(e) {
+  // month plus one
+  e.preventDefault();
+  properties.showMonth++;
+  if (properties.showMonth > 11) {
+    properties.showYear++;
+    properties.showMonth = 0;
+  }
+  refreshDate();
+}
 
 window.onload = function () {
-  document.getElementById("diary").innerHTML = diayCalendar;
+  document.getElementById("diary").innerHTML = diaryCalendar;
+  properties.path = document.getElementById("diary").getAttribute("path");
   properties.holder = document.getElementById("days");
   properties.prev = document.getElementById("properties.prev");
   properties.next = document.getElementById("properties.next");
   properties.monthElement = document.getElementById("month");
   properties.yearElement = document.getElementById("year");
-  listAllDiary();
-  properties.prev.onclick = function (e) {
-    e.preventDefault();
-    properties.showMonth--;
-    if (properties.showMonth < 0) {
-      properties.showYear--;
-      properties.showMonth = 11;
-    }
-    refreshDate();
-  };
+  // add prev and next onclick action
+  properties.prev.onclick = prevClickAction;
+  properties.next.onclick = nextClickAction;
 
-  properties.next.onclick = function (e) {
-    e.preventDefault();
-    properties.showMonth++;
-    if (properties.showMonth > 11) {
-      properties.showYear++;
-      properties.showMonth = 0;
-    }
-    refreshDate();
-  };
+  refreshDate();
 };
 
 function refreshDate() {
-  var days = "";
+  // refresh calendar date
   var calendar = new Calendar(
     properties.showYear,
     properties.showMonth,
@@ -106,15 +114,16 @@ function refreshDate() {
 }
 
 function addClickHandleForDays() {
+  // add click action handle calendar date and show diary.
   var days = document.getElementsByClassName("day");
   for (var i = 0; i < days.length; i++) {
-    if (days[i].classList.contains("cursor-pointer")) {
-      days[i].onclick = function (e) {
-        properties.thisDay = this.innerHTML;
-        console.log(this);
-        refreshDate();
-      };
+    if (!days[i].classList.contains("cursor-pointer")) {
+      continue;
     }
+    days[i].onclick = function (e) {
+      properties.thisDay = this.innerHTML;
+      refreshDate();
+    };
   }
 }
 
@@ -161,28 +170,22 @@ Calendar.prototype.computeWeeks = function (firstDay, totalDay) {
 Calendar.prototype.addData = function (date) {
   var row = Math.ceil((this.firstDay + date.getDate()) / 7) - 1;
   var col = (this.firstDay + date.getDate() - 1) % 7;
-  var dayClass;
-  var dayStr = date.getDate();
   var element = document.createElement("td");
   element.innerHTML = date.getDate();
   element.classList.add("day");
-  if (date < today) {
-    // When the date is before today, it is displayed in light gray font
-  } else if (date.getTime() == today.getTime()) {
-    // Today's date is highlighted with a green background
+  checkHashDiary(date);
+  if (date.getTime() == today.getTime()) {
+    // Today's date is highlighted
     element.classList.add("calendar-current");
-  } else {
-    // When the date is after today, it is displayed in dark gray font
-    dayClass = " class='day'";
   }
-  if (properties.allDiary.includes(date.format("yyyyMMdd") + ".html")) {
+  console.log(properties.allDiary);
+  if (properties.allDiary.includes(date.format("yyyyMMdd"))) {
     element.classList.add("calendar-has-diary");
     element.classList.add("cursor-pointer");
   }
   if (date.getDate() == properties.thisDay) {
     element.classList.add("calendar-selected");
   }
-  //this.data[row][col] = "<td" + dayClass + ">" + dayStr + "</td>";
   this.data[row][col] = element.outerHTML;
 };
 
@@ -207,29 +210,28 @@ Calendar.prototype.printData = function () {
 };
 
 Calendar.prototype.fetchDiary = function () {
+  // fetch diary html show
   const xhttp = new XMLHttpRequest();
   const selectedDate = new Date(this.year, this.month, this.selectDay).format(
     "yyyyMMdd"
   );
-  const path = document.getElementById("diary").getAttribute("path");
+  const path = properties.path;
   xhttp.onload = function () {
     if (this.status == 404) {
       var message = document.createElement("div");
       var noDiaryMessage = document.createElement("p");
       noDiaryMessage.innerHTML = "There is no diary for day " + selectedDate;
-      message.innerHTML = noDiaryMessage.outerHTML; 
-      var alldDiary = properties.allDiary;
-      if (alldDiary != undefined && alldDiary.length > 0) {
+      message.innerHTML = noDiaryMessage.outerHTML;
+      if (properties.allDiary != undefined && properties.allDiary.length != 0) {
         var existDiaryMessage = document.createElement("p");
         var existDiarya = document.createElement("a");
-        var latestDiary = properties.allDiary[properties.allDiary.length-1];
-        existDiarya.innerHTML = latestDiary.replace(".html", "");
-        existDiaryMessage.innerHTML = "Your latest diary is " + existDiarya.outerHTML;
+        var latestDiary = properties.allDiary[properties.allDiary.length - 1];
+        existDiarya.innerHTML = latestDiary;
+        existDiaryMessage.innerHTML =
+          "Your latest diary is " + existDiarya.outerHTML;
         message.innerHTML += existDiaryMessage.outerHTML;
       }
-      console.log(message);
       document.getElementById("diary-content").innerHTML = message.outerHTML;
-      ;
     } else if (this.status == 200) {
       document.getElementById("diary-content").innerHTML = this.responseText;
     }
@@ -240,6 +242,7 @@ Calendar.prototype.fetchDiary = function () {
 };
 
 Date.prototype.format = function (fmt) {
+  // format date string
   var o = {
     "M+": this.getMonth() + 1,
     "d+": this.getDate(),
@@ -266,20 +269,8 @@ Date.prototype.format = function (fmt) {
   return fmt;
 };
 
-function listAllDiary() {
-  const xhttp = new XMLHttpRequest();
-  const path = document.getElementById("diary").getAttribute("path");
-  xhttp.onload = function () {
-    // unique and sort all diary
-    properties.allDiary = unique(/[0-9]+\.html/.exec(this.responseText)).sort();
-    refreshDate();
-  };
-
-  xhttp.open("GET", path);
-  xhttp.send();
-}
-
 function unique(arr) {
+  // unique a array
   for (var i = 0; i < arr.length; i++) {
     for (var j = i + 1; j < arr.length; j++) {
       if (arr[i] == arr[j]) {
@@ -289,4 +280,19 @@ function unique(arr) {
     }
   }
   return arr;
+}
+
+function checkHashDiary(date) {
+  // send a head request to check diary exists.
+  const xhttp = new XMLHttpRequest();
+  const path = properties.path;
+  const dateStr = date.format("yyyyMMdd");
+  xhttp.onload = function () {
+    if (this.status == 200) {
+      properties.allDiary.push(dateStr);
+    }
+  };
+
+  xhttp.open("HEAD", path + dateStr + ".html", false);
+  xhttp.send();
 }
